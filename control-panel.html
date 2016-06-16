@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <script src="js/jquery-1.11.2.min.js"></script>
+        <script src="js/Long.min.js"></script>         
+        <script src="js/ByteBufferAB.min.js"></script> 
+        <script src="js/ProtoBuf.min.js"></script>
+        <script src="js/mqttws31.js" type="text/javascript"></script>
+        <script src="js/jsxcompressor.min.js" type="text/javascript"></script>
+        <script src="js/Main_db.js" type="text/javascript"></script>
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+    </head>
+    <body class="left full">
+        <div id="header" class="left full first_level">
+            <div id="game_time" class="left w75 h100 big_text">
+
+            </div>
+            <div id="score" class="right w25 h100 big_text">
+                Score: 0
+            </div>
+        </div>
+        <div id="body" class="left full first_level">
+            <div id="target_body" class="left w100 h100">
+                <div id="target" class="left w100 h90">
+                    <div id="target_frame" class="yellowLR">
+                    </div>
+                </div>
+                <div id="shotsLeft" class="left w100 h10 big_text">
+                    Shots Left: 0
+                </div>
+                <div id="sTimeLeft" class="left w100 h10 big_text">
+                    Shooting time left: 0m:0s
+                </div>
+                <div id="gameTimeLeft" class="left w100 h10 big_text">
+                    Game time left: 0m:0s
+                </div>
+                <div id="lux" class="left w100 h10 big_text">
+                    Lux: 0
+                </div>
+            </div>
+        </div>
+        <div id="gameHintsMessages" class="big_text">
+            Press L+R button to start the game
+        </div>
+        <div id="gameStatusMessages" class="big_text">
+        </div>
+    </body>
+</html>

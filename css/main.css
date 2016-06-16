@@ -1,0 +1,110 @@
+body {
+	font: 15px Verdana, sans-serif;
+}
+
+div.first_level{
+	/*border: 2px solid red;*/
+}
+
+div{
+	/*border: 1px solid gray;*/
+}
+
+.left{
+	float: left;
+}
+
+.right{
+	float: right;
+}
+
+.full{
+	width: 99%;
+}
+
+.w75{
+	width: 74%;
+}
+
+.w25{
+	width: 24%;
+}
+
+.w10{
+	width: 4%;
+}
+
+.w90{
+	width: 94%;
+}
+
+.w100{
+	width: 99%;
+}
+
+.h10{
+	height: 9%;
+}
+
+.h90{
+	height: 89%;
+}
+
+ .h100{
+	height: 99%;
+}
+
+.big_text{
+	font-size:30px;
+}
+
+#header{
+	height:50px;
+}
+
+#body{
+	height:500px;
+}
+
+#score, #shotsLeft, #sTimeLeft, #gameTimeLeft{
+	text-align: right;
+}
+
+#lux, shotsLeft{
+	text-align: right;
+}
+
+#target{
+	text-align: center;
+}
+
+.green{
+	float:left;
+	background: #ffffff url('../img/target_g.jpg') no-repeat scroll center; 
+}
+
+.yellow{
+	float:left;
+	background: #ffffff url('../img/target_y.jpg') no-repeat scroll center; 
+}
+.yellowLR{
+	float:left;
+	background: #ffffff url('../img/target_y_l_r.png') no-repeat scroll center; 
+}
+.yellowL{
+	float:left;
+	background: #ffffff url('../img/target_y_l.png') no-repeat scroll center; 
+}
+.yellowR{
+	float:left;
+	background: #ffffff url('../img/target_y_r.png') no-repeat scroll center; 
+}
+.red{
+	float:left;
+	background: #ffffff url('../img/target.jpg') no-repeat scroll center; 
+}
+#target_frame{
+	width:100%;
+	height:100%;
+}
+
