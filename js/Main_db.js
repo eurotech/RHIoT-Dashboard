@@ -13,7 +13,7 @@ var MQTTBrokerIP = "broker-sandbox.everyware-cloud.com";
 var AppId = "org.jboss.rhiot.services.RHIoTTagScanner";
 
 // Kura ShootAPi Topic; set XX:XX:XX:XX:XX:XX to your tag BLE address
-var TheTopic = "data/B0:B4:48:D6:DA:85";
+var TheTopic = "data/XX:XX:XX:XX:XX:XX";
 
 // MQTT User Name; set to that provided in lab instructions
 var user = "s-stark";
