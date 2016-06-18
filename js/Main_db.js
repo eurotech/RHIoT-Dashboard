@@ -3,7 +3,7 @@ window.onload = function () {
     WebSocketConnect();
 };
 
-// MAC address (or Cloud Client-ID) of the RHIoTTagServices gateway
+// DN2016-GWN of the RHIoTTagServices gateway where N = number of gateway at your table
 var RHIoTTagServicesMAC = "DN2016-GW0";
 
 // Ip Address of the MQTT Broker (WebSockets)
@@ -12,14 +12,14 @@ var MQTTBrokerIP = "broker-sandbox.everyware-cloud.com";
 // Kura RHIoTTagService APP_ID
 var AppId = "org.jboss.rhiot.services.RHIoTTagScanner";
 
-// Kura ShootAPi Topic
-var TheTopic = "data/C4:BE:84:72:5B:8A";
+// Kura ShootAPi Topic; set XX:XX:XX:XX:XX:XX to your tag BLE address
+var TheTopic = "data/XX:XX:XX:XX:XX:XX";
 
-// MQTT User Name
-var user = "";
+// MQTT User Name; set to that provided in lab instructions
+var user = "s-stark";
 
-// MQTT Password
-var password = "";
+// MQTT Password; set to that provided in lab instructions
+var password = "********";
 
 // Initialize Protobuf
 var ProtoBuf = dcodeIO.ProtoBuf;
@@ -80,15 +80,23 @@ function WebSocketConnect()
     client.connect({
         userName: user,
         password: password,
-        onSuccess: onConnect}
+        onSuccess: onConnect,
+        onFailure: onFailToConnect
+        }
     );
 
     function onConnect() {
         console.log("onConnect");
         //client.subscribe(user+"/"+RHIoTTagServicesMAC+"/+/"+TheTopic+"/#");
-        client.subscribe(user + "/" + RHIoTTagServicesMAC + "/+/" + TheTopic + "/#");
+        var topic = "Red-Hat/"+RHIoTTagServicesMAC+"/org.jboss.rhiot.services.RHIoTTagScanner/" + TheTopic + "/#";
+        client.subscribe(topic);
+        console.log("Subscribed to topic: "+topic);
     }
     ;
+
+    function onFailToConnect(info) {
+        console.log("Failed to connect: code="+info.errorCode+", msg="+info.errorMessage);
+    }
 
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0)
