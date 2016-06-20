@@ -1,5 +1,7 @@
 *.class
 .idea
+.project
+.settings
 
 # Mac files #
 .DS_Store*

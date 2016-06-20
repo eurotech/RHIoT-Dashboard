@@ -3,17 +3,14 @@ window.onload = function () {
     WebSocketConnect();
 };
 
-// DN2016-GWN of the RHIoTTagServices gateway where N = number of gateway at your table
-var RHIoTTagServicesMAC = "DN2016-GW0";
 
-// Ip Address of the MQTT Broker (WebSockets)
+
+// Dashboard parameters
+// Ip Address of the Eurotech Device Cloud (EDC) MQTT Broker (WebSockets)
 var MQTTBrokerIP = "broker-sandbox.everyware-cloud.com";
 
-// Kura RHIoTTagService APP_ID
-var AppId = "org.jboss.rhiot.services.RHIoTTagScanner";
-
-// Kura ShootAPi Topic; set XX:XX:XX:XX:XX:XX to your tag BLE address
-var TheTopic = "data/XX:XX:XX:XX:XX:XX";
+// EDC account name; set to that provided in lab instructions
+var accountName = "Red-Hat";
 
 // MQTT User Name; set to that provided in lab instructions
 var user = "s-stark";
@@ -21,14 +18,27 @@ var user = "s-stark";
 // MQTT Password; set to that provided in lab instructions
 var password = "********";
 
+// RHIoTTagService APP_ID
+var AppId = "org.jboss.rhiot.services.RHIoTTagScanner";
+
+// RHIoTTagService data Topic
+var dataTopic = "data";
+
+// RHIoTTag MAC address; set XX:XX:XX:XX:XX:XX to your tag BLE address
+var tagMACAddress = "XX:XX:XX:XX:XX:XX";
+
+// DN2016-GWN of the RHIoTTagServices gateway where N = number of gateway at your table
+var GatewayName = "DN2016-GW0";
+
+
+
 // Initialize Protobuf
 var ProtoBuf = dcodeIO.ProtoBuf;
 var ByteBuf = dcodeIO.ByteBuffer;
 var pbMsg = ProtoBuf.loadProto("package kuradatatypes;option java_package= \"org.eclipse.kura.core.message.protobuf\";option java_outer_classname = \"KuraPayloadProto\";message KuraPayload {message KuraMetric {enum ValueType{DOUBLE = 0;FLOAT = 1;INT64 = 2;INT32 = 3;BOOL = 4;STRING = 5;BYTES = 6;}required string name = 1;required ValueType type = 2;optional double double_value = 3;optional float float_value = 4;optional int64 long_value = 5;optional int32 int_value = 6;optional bool bool_value = 7;optional string string_value = 8;optional bytes bytes_value = 9;}message KuraPosition{required double latitude=1;required double longitude=2;optional double altitude=3;optional double precision=4;optional double heading=5;optional double speed = 6;optional int64 timestamp=7;optional int32 satellites=8;optional int32 status=9;}optional int64 timestamp = 1;optional KuraPosition position  = 2;extensions 3 to 4999;repeated KuraMetric metric=5000;optional bytes body= 5001;}")
         .build("kuradatatypes.KuraPayload");
 
-//var client = new Paho.MQTT.Client(MQTTBrokerIP+":8080/ws", "ClientDashboard-"+ RHIoTTagServicesMAC);
-var client = new Paho.MQTT.Client(MQTTBrokerIP, 8080, "ClientDashboard-" + RHIoTTagServicesMAC);
+var client = new Paho.MQTT.Client(MQTTBrokerIP, 8080, "ClientDashboard-" + GatewayName);
 
 var timedFunction;
 var previousScore = 0;
@@ -39,41 +49,8 @@ var gameTimeLeft = 0;
 var luxVal = 0;
 var previousEvent = "NOOP";
 
-function Command() {
-    var pbMessage = new pbMsg({
-        "metric": {
-            "name": "Command",
-            "type": 5,
-            "string_value": "New game"
-        }
-    });
-    var buffer = pbMessage.encode();
-    var message = new Paho.MQTT.Message(buffer.toArrayBuffer());
-    message.destinationName = user + "/" + RHIoTTagServicesMAC + "/" + AppId + "/Commands";
-    console.log("Sending message to :" + message.destinationName);
-    client.send(message);
 
-}
-
-function StopCommand() {
-    var pbMessage = new pbMsg({
-        "metric": {
-            "name": "Command",
-            "type": 5,
-            "string_value": "Stop game"
-        }
-    });
-    var buffer = pbMessage.encode();
-    var message = new Paho.MQTT.Message(buffer.toArrayBuffer());
-    message.destinationName = user + "/" + RHIoTTagServicesMAC + "/" + AppId + "/Commands";
-    console.log("Sending message to :" + message.destinationName);
-    client.send(message);
-}
-
-function WebSocketConnect()
-{
-    //client = new Paho.MQTT.Client("ws://"+MQTTBrokerIP+":8080/ws", "ClientDashboard-"+ RHIoTTagServicesMAC);
-
+function WebSocketConnect() {
     client.onConnectionLost = onConnectionLost;
     client.onMessageArrived = onMessageArrived;
     client.startTrace();
@@ -87,49 +64,45 @@ function WebSocketConnect()
 
     function onConnect() {
         console.log("onConnect");
-        //client.subscribe(user+"/"+RHIoTTagServicesMAC+"/+/"+TheTopic+"/#");
-        var topic = "Red-Hat/"+RHIoTTagServicesMAC+"/org.jboss.rhiot.services.RHIoTTagScanner/" + TheTopic + "/#";
+        var topic = accountName + "/" + GatewayName + "/" + AppId + "/" + dataTopic + "/" + tagMACAddress + "/#";
         client.subscribe(topic);
         console.log("Subscribed to topic: "+topic);
-    }
-    ;
+    };
 
     function onFailToConnect(info) {
-        console.log("Failed to connect: code="+info.errorCode+", msg="+info.errorMessage);
-    }
+        console.log("Failed to connect: code=" + info.errorCode + ", msg=" + info.errorMessage);
+    };
 
     function onConnectionLost(responseObject) {
-        if (responseObject.errorCode !== 0)
+        if (responseObject.errorCode !== 0) {
             console.log("onConnectionLost:" + responseObject.errorMessage);
-    }
-    ;
-    function onMessageArrived(message) {
+        }
+    };
 
+    function onMessageArrived(message) {
         var topic = message.destinationName;
         var topicFragments = topic.split('/');
         //console.log(topicFragments);
 
-        //Get the payload
+        // Get the payload
         var bytes = message.payloadBytes;
-        //Check for GZip header
+        // Check for GZip header
         if (bytes[0] == 31 && bytes[1] == 139 && bytes[2] == 8 && bytes[3] == 0) {
             //if the packet is a GZip buffer, decompress it...
 
-            //Convert the payload to a Base64 string
+            // Convert the payload to a Base64 string
             var b64 = _arrayBufferToBase64(bytes);
-            //Decompress the payload into a string
+            // Decompress the payload into a string
             var cdecomp = JXG.decompress(b64);
-            //Generate a byte array from the decompressed string
+            // Generate a byte array from the decompressed string
             var bytes = new Uint8Array(cdecomp.length);
-            for (var i = 0; i < cdecomp.length; ++i)
-            {
+            for (var i = 0; i < cdecomp.length; ++i) {
                 bytes[i] = (cdecomp.charCodeAt(i));
             }
         }
 
-        //Finally decode the packet with Protocol Buffers
+        // Finally decode the packet with Protocol Buffers
         var newMsg = pbMsg.decode(bytes);
-
         var metrics = newMsg.getMetric();
 
         //console.log(newMsg);
@@ -138,6 +111,8 @@ function WebSocketConnect()
             var metric = newMsg.getMetric()[i];
             var statusLabel = "";
             var hintLabel = "";
+            var seconds = 0;
+            var minutes = 0;
 
             if (metric.name === "rhiotTag.gameScore") {
                 currentScore = metric.int_value;
@@ -155,15 +130,15 @@ function WebSocketConnect()
             }
             if (metric.name === "rhiotTag.shootingTimeLeft") {
                 shootingTimeLeft = metric.int_value;
-                var seconds = Math.floor((shootingTimeLeft / 1000) % 60);
-                var minutes = Math.floor((shootingTimeLeft / (1000 * 60)) % 60);
+                seconds = Math.floor((shootingTimeLeft / 1000) % 60);
+                minutes = Math.floor((shootingTimeLeft / (1000 * 60)) % 60);
                 $("#lux").text("Lux: " + luxVal);
                 $("#sTimeLeft").text("Shooting time left: " + minutes + "m:" + seconds + "s");
             }
             if (metric.name === "rhiotTag.gameTimeLeft") {
                 gameTimeLeft = metric.int_value;
-                var seconds = Math.floor((gameTimeLeft / 1000) % 60);
-                var minutes = Math.floor((gameTimeLeft / (1000 * 60)) % 60);
+                seconds = Math.floor((gameTimeLeft / 1000) % 60);
+                minutes = Math.floor((gameTimeLeft / (1000 * 60)) % 60);
                 $("#lux").text("Lux: " + luxVal);
                 $("#gameTimeLeft").text("Game time left: " + minutes + "m:" + seconds + "s");
             }
@@ -184,8 +159,7 @@ function WebSocketConnect()
             }
             if (metric.name === "rhiotTag.event" &&
                     metric.string_value === "LEFT_RIGHT_PRESSED" &&
-                    (previousEvent === "GAME_TIMEOUT" || previousEvent === "NOOP")
-                    ) {
+                    (previousEvent === "GAME_TIMEOUT" || previousEvent === "NOOP")) {
                 $("#target_frame").attr("class", "green");
                 hintLabel = "";
                 $("#gameHintsMessages").text(hintLabel);
@@ -234,8 +208,7 @@ function WebSocketConnect()
             }
         }
 
-    }
-    ;
+    };
 
     function _arrayBufferToBase64(buffer) {
         var binary = '';
@@ -245,8 +218,7 @@ function WebSocketConnect()
             binary += String.fromCharCode(bytes[ i ]);
         }
         return window.btoa(binary);
-    }
-    ;
+    };
 
     function _base64ToArrayBuffer(base64) {
         var binary_string = window.atob(base64);
@@ -257,6 +229,5 @@ function WebSocketConnect()
             bytes[i] = ascii;
         }
         return bytes.buffer;
-    }
-
+    };
 }
